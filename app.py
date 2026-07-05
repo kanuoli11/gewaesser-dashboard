@@ -1,4 +1,49 @@
 import streamlit as st
+st.markdown("""
+<style>
+
+.main{
+    background-color:#eef4f7;
+}
+
+h1{
+    color:#0d3b66;
+}
+
+h2{
+    color:#145374;
+}
+
+div[data-testid="stMetric"]{
+
+    background:white;
+
+    border-radius:12px;
+
+    padding:18px;
+
+    box-shadow:0px 2px 10px rgba(0,0,0,0.12);
+
+}
+
+div.stButton>button{
+
+    border-radius:10px;
+
+    background:#0d6efd;
+
+    color:white;
+
+}
+
+section[data-testid="stSidebar"]{
+
+    background:#d9edf7;
+
+}
+
+</style>
+""",unsafe_allow_html=True)
 import requests
 import pandas as pd
 from datetime import datetime, date
