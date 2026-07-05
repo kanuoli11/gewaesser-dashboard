@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime, date
+import urllib.parse
 
 # SPRECHENDE TITEL UND LAYOUT EINRICHTEN
 st.set_page_config(page_title="Kanu- & Paddel-Dashboard Deutschland", layout="wide", page_icon="🛶")
@@ -9,7 +10,7 @@ st.set_page_config(page_title="Kanu- & Paddel-Dashboard Deutschland", layout="wi
 st.title("🛶 Bundesweites Kanu- & Paddel-Dashboard")
 st.subheader("Echtzeit-Pegel, Befahrungsregelungen, Sperrungen und Umweltwarnungen")
 
-# Mapping für Bundesland-Kürzel (für die Hochwasser-API)
+# Mapping für Bundesland-Kürzel
 BL_MAP = {
     "Baden-Württemberg": "BW", "Bayern": "BY", "Berlin": "BE", "Brandenburg": "BB", "Bremen": "HB",
     "Hamburg": "HH", "Hessen": "HE", "Mecklenburg-Vorpommern": "MV", "Niedersachsen": "NI",
@@ -32,8 +33,6 @@ SPERRUNGEN_DATENBANK = [
 # ==========================================
 # DATA FETCHING AUTOMATISCH
 # ==========================================
-
-# 1. API: PEGELONLINE
 @st.cache_data(ttl=600)
 def load_live_pegel():
     try:
@@ -54,7 +53,6 @@ def load_live_pegel():
         pass
     return pd.DataFrame(columns=["Gewässer", "Station", "Pegel (cm)", "Zeitpunkt"])
 
-# 2. API: LÄNDERÜBERGREIFENDES HOCHWASSERPORTAL (LHP)
 @st.cache_data(ttl=900)
 def get_hochwasser_status():
     try:
@@ -72,7 +70,6 @@ hw_data = get_hochwasser_status()
 # DASHBOARD SIDEBAR (FILTER)
 # ==========================================
 st.sidebar.header("🗺️ Filter-Optionen")
-
 bundeslaender = ["Alle Bundesländer"] + list(BL_MAP.keys())
 selected_bl = st.sidebar.selectbox("Wähle ein Bundesland:", bundeslaender)
 
@@ -166,12 +163,26 @@ with col2:
         st.dataframe(df_pegel_filtered.sort_values(by="Gewässer"), use_container_width=True, hide_index=True)
 
 # ==========================================
-# QUELLEN-BOX GANZ UNTEN (NEU!)
+# NEU: INTELLIGENTER DKV-EXTERN-LINK
+# ==========================================
+st.markdown("---")
+st.markdown("### 📑 DKV-Befahrungsregelungen (Ergänzende Suche)")
+if selected_bl != "Alle Bundesländer":
+    # Link generieren, der direkt das Bundesland übergibt
+    encoded_bl = urllib.parse.quote(selected_bl)
+    dkv_link = f"https://waters.kanu-efb.de/waters/ShowRestrictions.php?land={encoded_bl}"
+    st.info(f"🔗 **Direkt-Link für {selected_bl}:** [Hier klicken für alle DKV-Regelungen in {selected_bl}]({dkv_link})")
+else:
+    st.info("🔗 **Gesamt-Datenbank:** [Hier geht es direkt zur vollständigen DKV-Befahrungsdatenbank (kanu-efb.de)](https://waters.kanu-efb.de/waters/ShowRestrictions.php)")
+
+# ==========================================
+# QUELLEN-BOX GANZ UNTEN
 # ==========================================
 st.markdown("---")
 st.markdown("#### ℹ️ Genutzte Quellen")
 st.caption("""
 * **PEGELONLINE API:** Wasserstraßen- und Schifffahrtsverwaltung des Bundes (WSV) – Automatische Echtzeit-Pegelstände der Bundeswasserstraßen.
 * **LHP API (Hochwasserzentralen.de):** Länderübergreifendes Hochwasserportal – Automatische, offizielle Hochwasser-Warnmeldungen und Lageberichte der einzelnen Bundesländer.
-* **Community- & Vereinsdatenbank:** Manuell gepflegte Befahrungsregelungen, temporäre Naturschutz-Sperrungen (z.B. Vogelschutz) und lokale Umweltämter-Warnungen (z.B. Blaualgen).
+* **Deutscher Kanu-Verband e.V. (DKV):** Direktverlinkung zur DKV-Gewässerdatenbank für amtliche und vereinsinterne Befahrungsregelungen.
+* **Community- & Vereinsdatenbank:** Manuell gepflegte Befahrungsregelungen, temporäre Naturschutz-Sperrungen (z.B. Vogelschutz) und lokale Umweltamt-Warnungen (z.B. Blaualgen).
 """)
