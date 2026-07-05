@@ -172,7 +172,7 @@ st.markdown("## 🗺 Deutschlandkarte (Beta)")
 m = create_base_map()
 m = add_dummy_points(m)
 
-map_data = st_folium(m, width=1100, height=500)
+st_folium(m, width=1100, height=500)
 # =========================
 # FOOTER
 # =========================
