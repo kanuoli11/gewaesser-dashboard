@@ -75,7 +75,7 @@ BL_MAP = {
 }
 
 # ==========================================
-# KONFIGURATION: MANUELLE KANU-DATENBANK (Jetzt mit optionalem Link!)
+# KONFIGURATION: MANUELLE KANU-DATENBANK
 # ==========================================
 SPERRUNGEN_DATENBANK = [
     {
@@ -85,7 +85,7 @@ SPERRUNGEN_DATENBANK = [
         "Typ": "Umweltschutz", 
         "Status": "⚠️ Befahrungsverbot zum Vogelschutz (jährlich von März bis Ende Juli).", 
         "Gültig_bis": "2026-07-31",
-        "Link": "https://www.kanu-bayern.de"  # Beispiel-Link
+        "Link": "https://www.kanu-bayern.de"
     },
     {
         "Gewässer": "Wiesent", 
@@ -94,7 +94,7 @@ SPERRUNGEN_DATENBANK = [
         "Typ": "Regulierung", 
         "Status": "Obergrenze: Nur über Mindestpegel frei, organisierter Verleih eingeschränkt.", 
         "Gültig_bis": "2026-10-31",
-        "Link": ""  # Kein Link vorhanden
+        "Link": ""
     },
     {
         "Gewässer": "Spreewald", 
@@ -170,7 +170,7 @@ def get_hochwasser_status():
 df_pegel = load_live_pegel()
 anzahl_pegel = len(df_pegel)
 
-# Vorab-Verarbeitung für die Kennzahlen-Metriken (Fehlerbehebung)
+# Vorab-Verarbeitung für die Kennzahlen-Metriken
 heute_date = date.today()
 aktive_meldungen_init = []
 archiv_meldungen_init = []
@@ -190,16 +190,16 @@ hw_data = get_hochwasser_status()
 c1,c2,c3,c4=st.columns(4)
 
 with c1:
-    st.metric("🌊 Pegelstationen",anzahl_pegel)
+    st.metric("🌊 Pegelstationen", anzahl_pegel)
 
 with c2:
-    st.metric("⚠️ Sperrungen",anzahl_sperrungen)
+    st.metric("⚠️ Sperrungen", anzahl_sperrungen)
 
 with c3:
-    st.metric("📂 Archiv",anzahl_warnungen)
+    st.metric("📂 Archiv", anzahl_warnungen)
 
 with c4:
-    st.metric("📅 Heute",hehte_str if 'hehte_str' in locals() else heute_str)
+    st.metric("📅 Heute", heute_str)
 
 # ==========================================
 # DASHBOARD SIDEBAR (FILTER)
@@ -263,7 +263,6 @@ col1, col2 = st.columns([1, 1])
 with col1:
     st.markdown("### ⚠️ Aktuelle Sperrungen & Kanu-Hinweise")
     
-    # Textsuche auf aktive Sperrungen anwenden
     df_aktiv_display = df_aktiv.copy()
     if suche:
         df_aktiv_display = df_aktiv_display[df_aktiv_display["Gewässer"].str.contains(suche, case=False, na=False)]
@@ -285,7 +284,6 @@ with col1:
     st.markdown("---")
     st.markdown("### 📂 Archiv: Kürzlich abgelaufene Infos")
     
-    # Textsuche auf Archiv anwenden
     df_archiv_display = df_archiv.copy()
     if suche:
         df_archiv_display = df_archiv_display[df_archiv_display["Gewässer"].str.contains(suche, case=False, na=False)]
@@ -301,10 +299,4 @@ with col1:
                     st.link_button("🌐 Zum alten Info-Link", row["Link"])
                     
                 alt_datum = datetime.strptime(row["Gültig_bis"], "%Y-%m-%d").strftime("%d.%m.%Y")
-                st.caption(f"Gültigkeit lief ab am: {alt_datum}")
-
-with col2:
-    st.markdown("### 🌊 Bundesweite Live-Pegelstände")
-    search_river = st.text_input("🔍 Pegel nach Flussnamen filtern (z.B. Donau, Rhein, Isar):", "")
-    
-    df_pegel_filtered = df_pegel.
+                st.caption(f"Gültigkeit lief ab am: {alt_datum
