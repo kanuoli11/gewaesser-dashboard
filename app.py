@@ -1,4 +1,9 @@
 import streamlit as st
+import requests
+import pandas as pd
+from datetime import datetime, date
+import urllib.parse
+
 st.markdown("""
 <style>
 
@@ -44,10 +49,6 @@ section[data-testid="stSidebar"]{
 
 </style>
 """,unsafe_allow_html=True)
-import requests
-import pandas as pd
-from datetime import datetime, date
-import urllib.parse
 
 # SPRECHENDE TITEL UND LAYOUT EINRICHTEN
 st.set_page_config(page_title="Kanu- & Paddel-Dashboard Deutschland", layout="wide", page_icon="🛶")
@@ -76,9 +77,6 @@ BL_MAP = {
 # ==========================================
 # KONFIGURATION: MANUELLE KANU-DATENBANK (Jetzt mit optionalem Link!)
 # ==========================================
-# Du kannst jetzt bei jedem Eintrag ganz einfach ein Feld "Link": "https://..." hinzufügen.
-# Wenn du keinen Link hast, schreibe einfach "Link": "" oder lass es weg.
-
 SPERRUNGEN_DATENBANK = [
     {
         "Gewässer": "Isar", 
@@ -172,11 +170,22 @@ def get_hochwasser_status():
 df_pegel = load_live_pegel()
 anzahl_pegel = len(df_pegel)
 
-anzahl_sperrungen = len(df_aktiv) if 'df_aktiv' in locals() else 0
+# Vorab-Verarbeitung für die Kennzahlen-Metriken (Fehlerbehebung)
+heute_date = date.today()
+aktive_meldungen_init = []
+archiv_meldungen_init = []
 
-anzahl_warnungen = len(df_archiv) if 'df_archiv' in locals() else 0
+for meldung in SPERRUNGEN_DATENBANK:
+    ablauf_datum = datetime.strptime(meldung["Gültig_bis"], "%Y-%m-%d").date()
+    if ablauf_datum >= heute_date:
+        aktive_meldungen_init.append(meldung)
+    else:
+        archiv_meldungen_init.append(meldung)
 
-heute = datetime.now().strftime("%d.%m.%Y")
+anzahl_sperrungen = len(aktive_meldungen_init)
+anzahl_warnungen = len(archiv_meldungen_init)
+
+heute_str = datetime.now().strftime("%d.%m.%Y")
 hw_data = get_hochwasser_status()
 c1,c2,c3,c4=st.columns(4)
 
@@ -190,7 +199,7 @@ with c3:
     st.metric("📂 Archiv",anzahl_warnungen)
 
 with c4:
-    st.metric("📅 Heute",heute)
+    st.metric("📅 Heute",hehte_str if 'hehte_str' in locals() else heute_str)
 
 # ==========================================
 # DASHBOARD SIDEBAR (FILTER)
@@ -230,21 +239,10 @@ if selected_bl != "Alle Bundesländer" and hw_data:
     st.markdown("---")
 
 # ==========================================
-# DATEN VERARBEITEN (AKTUELL VS. ARCHIV)
+# DATEN FILTERN FÜR DIE ANZEIGE
 # ==========================================
-heute = date.today()
-aktive_meldungen = []
-archiv_meldungen = []
-
-for meldung in SPERRUNGEN_DATENBANK:
-    ablauf_datum = datetime.strptime(meldung["Gültig_bis"], "%Y-%m-%d").date()
-    if ablauf_datum >= heute:
-        aktive_meldungen.append(meldung)
-    else:
-        archiv_meldungen.append(meldung)
-
-df_aktiv = pd.DataFrame(aktive_meldungen) if aktive_meldungen else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
-df_archiv = pd.DataFrame(archiv_meldungen) if archiv_meldungen else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
+df_aktiv = pd.DataFrame(aktive_meldungen_init) if aktive_meldungen_init else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
+df_archiv = pd.DataFrame(archiv_meldungen_init) if archiv_meldungen_init else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
 
 if selected_bl != "Alle Bundesländer":
     df_aktiv = df_aktiv[df_aktiv["Bundesland"] == selected_bl]
@@ -265,15 +263,19 @@ col1, col2 = st.columns([1, 1])
 with col1:
     st.markdown("### ⚠️ Aktuelle Sperrungen & Kanu-Hinweise")
     
-    if df_aktiv.empty:
+    # Textsuche auf aktive Sperrungen anwenden
+    df_aktiv_display = df_aktiv.copy()
+    if suche:
+        df_aktiv_display = df_aktiv_display[df_aktiv_display["Gewässer"].str.contains(suche, case=False, na=False)]
+        
+    if df_aktiv_display.empty:
         st.success("✅ Keine aktiven Sperrungen oder Warnungen für die aktuelle Auswahl gemeldet!")
     else:
-        for index, row in df_aktiv.iterrows():
+        for index, row in df_aktiv_display.iterrows():
             with st.expander(f"{row['Status'].split()[0] if row['Status'].split() else ''} {row['Gewässer']} ({row['Abschnitt']}) - {row['Bundesland']}"):
                 st.write(f"**Grund/Typ:** {row['Typ']}")
                 st.write(f"**Details:** {row['Status']}")
                 
-                # Prüfen, ob ein Link existiert und Button anzeigen
                 if "Link" in row and row["Link"]:
                     st.link_button("🌐 Mehr Infos auf externer Webseite", row["Link"])
                 
@@ -282,10 +284,16 @@ with col1:
 
     st.markdown("---")
     st.markdown("### 📂 Archiv: Kürzlich abgelaufene Infos")
-    if df_archiv.empty:
+    
+    # Textsuche auf Archiv anwenden
+    df_archiv_display = df_archiv.copy()
+    if suche:
+        df_archiv_display = df_archiv_display[df_archiv_display["Gewässer"].str.contains(suche, case=False, na=False)]
+        
+    if df_archiv_display.empty:
         st.caption("Keine abgelaufenen Meldungen im Archiv für diese Auswahl.")
     else:
-        for index, row in df_archiv.iterrows():
+        for index, row in df_archiv_display.iterrows():
             with st.expander(f"⚪ [ABGELAUFEN] {row['Gewässer']} ({row['Abschnitt']})"):
                 st.write(f"**Ehemaliger Status:** {row['Status']}")
                 
@@ -299,40 +307,4 @@ with col2:
     st.markdown("### 🌊 Bundesweite Live-Pegelstände")
     search_river = st.text_input("🔍 Pegel nach Flussnamen filtern (z.B. Donau, Rhein, Isar):", "")
     
-    df_pegel_filtered = df_pegel.copy()
-    if search_river:
-        df_pegel_filtered = df_pegel_filtered[df_pegel_filtered["Gewässer"].str.contains(search_river, case=False, na=False)]
-    
-    if df_pegel_filtered.empty:
-        st.info("Keine Pegelstationen für diesen Suchbegriff gefunden.")
-    else:
-        st.dataframe(df_pegel_filtered.sort_values(by="Gewässer"), use_container_width=True, hide_index=True)
-
-# ==========================================
-# INTELLIGENTER DKV-EXTERN-LINK
-# ==========================================
-st.markdown("---")
-st.markdown("### 📑 DKV-Befahrungsregelungen (Ergänzende Suche)")
-if selected_bl != "Alle Bundesländer":
-    encoded_bl = urllib.parse.quote(selected_bl)
-    dkv_link = f"https://waters.kanu-efb.de/waters/ShowRestrictions.php?land={encoded_bl}"
-    st.info(f"🔗 **Direkt-Link für {selected_bl}:** [Hier klicken für alle DKV-Regelungen in {selected_bl}]({dkv_link})")
-else:
-    st.info("🔗 **Gesamt-Datenbank:** [Hier geht es direkt zur vollständigen DKV-Befahrungsdatenbank (kanu-efb.de)](https://waters.kanu-efb.de/waters/ShowRestrictions.php)")
-
-# ==========================================
-# QUELLEN-BOX GANZ UNTEN
-# ==========================================
-st.markdown("---")
-st.markdown("#### ℹ️ Genutzte Quellen")
-st.caption("""
-* **PEGELONLINE API:** Wasserstraßen- und Schifffahrtsverwaltung des Bundes (WSV) – Automatische Echtzeit-Pegelstände der Bundeswasserstraßen.
-* **LHP API (Hochwasserzentralen.de):** Länderübergreifendes Hochwasserportal – Automatische, offizielle Hochwasser-Warnmeldungen und Lageberichte der einzelnen Bundesländer.
-* **Deutscher Kanu-Verband e.V. (DKV):** Direktverlinkung zur DKV-Gewässerdatenbank für amtliche und vereinsinterne Befahrungsregelungen.
-* **Community- & Vereinsdatenbank:** Manuell gepflegte Befahrungsregelungen, temporäre Naturschutz-Sperrungen (z.B. Vogelschutz) und lokale Umweltamt-Warnungen (z.B. Blaualgen).
-""")
-st.markdown("---")
-
-st.caption(
-"🛶 Kanuportal Deutschland | Version 2.0 | Daten: WSV, Hochwasserzentralen, DKV und Landesbehörden"
-)
+    df_pegel_filtered = df_pegel.
