@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 from datetime import datetime, date
 import urllib.parse
+from modules.pegel import load_pegel
 
 # =========================
 # PAGE CONFIG
@@ -79,30 +80,6 @@ SPERRUNGEN = [
     }
 ]
 
-# =========================
-# LIVE PEGEL (WSV)
-# =========================
-@st.cache_data(ttl=600)
-def load_pegel():
-    try:
-        url = "https://www.pegelonline.wsv.de/webservices/rest-api/v2/stations.json?includeCurrentMeasurement=true"
-        r = requests.get(url, timeout=10)
-
-        data = []
-        if r.status_code == 200:
-            for s in r.json():
-                if "currentMeasurement" in s:
-                    data.append({
-                        "Gewässer": s.get("water", {}).get("shortname", "Unbekannt"),
-                        "Station": s.get("name"),
-                        "Pegel": s["currentMeasurement"].get("value"),
-                        "Zeit": s["currentMeasurement"].get("timestamp")
-                    })
-
-        return pd.DataFrame(data)
-
-    except:
-        return pd.DataFrame(columns=["Gewässer", "Station", "Pegel", "Zeit"])
 
 
 df_pegel = load_pegel()
