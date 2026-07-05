@@ -19,15 +19,66 @@ BL_MAP = {
 }
 
 # ==========================================
-# KONFIGURATION: MANUELLE KANU-DATENBANK (Community-Pflege)
+# KONFIGURATION: MANUELLE KANU-DATENBANK (Jetzt mit optionalem Link!)
 # ==========================================
+# Du kannst jetzt bei jedem Eintrag ganz einfach ein Feld "Link": "https://..." hinzufügen.
+# Wenn du keinen Link hast, schreibe einfach "Link": "" oder lass es weg.
+
 SPERRUNGEN_DATENBANK = [
-    {"Gewässer": "Isar", "Abschnitt": "Freising bis Landshut", "Bundesland": "Bayern", "Typ": "Umweltschutz", "Status": "⚠️ Befahrungsverbot zum Vogelschutz (jährlich von März bis Ende Juli).", "Gültig_bis": "2026-07-31"},
-    {"Gewässer": "Wiesent", "Abschnitt": "Oberlauf", "Bundesland": "Bayern", "Typ": "Regulierung", "Status": "Obergrenze: Nur über Mindestpegel frei, organisierter Verleih eingeschränkt.", "Gültig_bis": "2026-10-31"},
-    {"Gewässer": "Spreewald", "Abschnitt": "Kernzone Fließe", "Bundesland": "Brandenburg", "Typ": "Sperrung", "Status": "🛑 Temporäre Sperrung wegen Niedrigwasser / Krautung.", "Gültig_bis": "2026-06-15"},
-    {"Gewässer": "Rur", "Abschnitt": "Eifel-Abschnitte", "Bundesland": "Nordrhein-Westfalen", "Typ": "Pegelabhängig", "Status": "⚠️ Befahrbar nur bei grünem Pegel (Info über Monschau).", "Gültig_bis": "2027-12-31"},
-    {"Gewässer": "Aller", "Abschnitt": "Mündungsebene", "Bundesland": "Niedersachsen", "Typ": "Umweltwarnung", "Status": "🦠 Blaualgenwarnung! Hautkontakt und Tränken von Hunden vermeiden.", "Gültig_bis": "2026-09-15"},
-    {"Gewässer": "Donau", "Abschnitt": "Obere Donau (Naturpark)", "Bundesland": "Baden-Württemberg", "Typ": "Regulierung", "Status": "🛑 Kontingentierung / Befahrungsverbot bei Pegel unter 46cm (Beuron).", "Gültig_bis": "2028-01-01"},
+    {
+        "Gewässer": "Isar", 
+        "Abschnitt": "Freising bis Landshut", 
+        "Bundesland": "Bayern", 
+        "Typ": "Umweltschutz", 
+        "Status": "⚠️ Befahrungsverbot zum Vogelschutz (jährlich von März bis Ende Juli).", 
+        "Gültig_bis": "2026-07-31",
+        "Link": "https://www.kanu-bayern.de"  # Beispiel-Link
+    },
+    {
+        "Gewässer": "Wiesent", 
+        "Abschnitt": "Oberlauf", 
+        "Bundesland": "Bayern", 
+        "Typ": "Regulierung", 
+        "Status": "Obergrenze: Nur über Mindestpegel frei, organisierter Verleih eingeschränkt.", 
+        "Gültig_bis": "2026-10-31",
+        "Link": ""  # Kein Link vorhanden
+    },
+    {
+        "Gewässer": "Spreewald", 
+        "Abschnitt": "Kernzone Fließe", 
+        "Bundesland": "Brandenburg", 
+        "Typ": "Sperrung", 
+        "Status": "🛑 Temporäre Sperrung wegen Niedrigwasser / Krautung.", 
+        "Gültig_bis": "2026-06-15",
+        "Link": "https://www.lfu.brandenburg.de"
+    },
+    {
+        "Gewässer": "Rur", 
+        "Abschnitt": "Eifel-Abschnitte", 
+        "Bundesland": "Nordrhein-Westfalen", 
+        "Typ": "Pegelabhängig", 
+        "Status": "⚠️ Befahrbar nur bei grünem Pegel (Info über Monschau).", 
+        "Gültig_bis": "2027-12-31",
+        "Link": ""
+    },
+    {
+        "Gewässer": "Aller", 
+        "Abschnitt": "Mündungsebene", 
+        "Bundesland": "Niedersachsen", 
+        "Typ": "Umweltwarnung", 
+        "Status": "🦠 Blaualgenwarnung! Hautkontakt und Tränken von Hunden vermeiden.", 
+        "Gültig_bis": "2026-09-15",
+        "Link": ""
+    },
+    {
+        "Gewässer": "Donau", 
+        "Abschnitt": "Obere Donau (Naturpark)", 
+        "Bundesland": "Baden-Württemberg", 
+        "Typ": "Regulierung", 
+        "Status": "🛑 Kontingentierung / Befahrungsverbot bei Pegel unter 46cm (Beuron).", 
+        "Gültig_bis": "2028-01-01",
+        "Link": "https://www.naturpark-obere-donau.de"
+    },
 ]
 
 # ==========================================
@@ -110,8 +161,8 @@ for meldung in SPERRUNGEN_DATENBANK:
     else:
         archiv_meldungen.append(meldung)
 
-df_aktiv = pd.DataFrame(aktive_meldungen) if aktive_meldungen else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis"])
-df_archiv = pd.DataFrame(archiv_meldungen) if archiv_meldungen else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis"])
+df_aktiv = pd.DataFrame(aktive_meldungen) if aktive_meldungen else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
+df_archiv = pd.DataFrame(archiv_meldungen) if archiv_meldungen else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
 
 if selected_bl != "Alle Bundesländer":
     df_aktiv = df_aktiv[df_aktiv["Bundesland"] == selected_bl]
@@ -135,6 +186,11 @@ with col1:
             with st.expander(f"{row['Status'].split()[0] if row['Status'].split() else ''} {row['Gewässer']} ({row['Abschnitt']}) - {row['Bundesland']}"):
                 st.write(f"**Grund/Typ:** {row['Typ']}")
                 st.write(f"**Details:** {row['Status']}")
+                
+                # Prüfen, ob ein Link existiert und Button anzeigen
+                if "Link" in row and row["Link"]:
+                    st.link_button("🌐 Mehr Infos auf externer Webseite", row["Link"])
+                
                 ziel_datum = datetime.strptime(row["Gültig_bis"], "%Y-%m-%d").strftime("%d.%m.%Y")
                 st.caption(f"Diese Meldung wird automatisch angezeigt bis: {ziel_datum}")
 
@@ -146,6 +202,10 @@ with col1:
         for index, row in df_archiv.iterrows():
             with st.expander(f"⚪ [ABGELAUFEN] {row['Gewässer']} ({row['Abschnitt']})"):
                 st.write(f"**Ehemaliger Status:** {row['Status']}")
+                
+                if "Link" in row and row["Link"]:
+                    st.link_button("🌐 Zum alten Info-Link", row["Link"])
+                    
                 alt_datum = datetime.strptime(row["Gültig_bis"], "%Y-%m-%d").strftime("%d.%m.%Y")
                 st.caption(f"Gültigkeit lief ab am: {alt_datum}")
 
@@ -163,12 +223,11 @@ with col2:
         st.dataframe(df_pegel_filtered.sort_values(by="Gewässer"), use_container_width=True, hide_index=True)
 
 # ==========================================
-# NEU: INTELLIGENTER DKV-EXTERN-LINK
+# INTELLIGENTER DKV-EXTERN-LINK
 # ==========================================
 st.markdown("---")
 st.markdown("### 📑 DKV-Befahrungsregelungen (Ergänzende Suche)")
 if selected_bl != "Alle Bundesländer":
-    # Link generieren, der direkt das Bundesland übergibt
     encoded_bl = urllib.parse.quote(selected_bl)
     dkv_link = f"https://waters.kanu-efb.de/waters/ShowRestrictions.php?land={encoded_bl}"
     st.info(f"🔗 **Direkt-Link für {selected_bl}:** [Hier klicken für alle DKV-Regelungen in {selected_bl}]({dkv_link})")
