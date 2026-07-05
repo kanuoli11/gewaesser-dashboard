@@ -52,7 +52,17 @@ import urllib.parse
 # SPRECHENDE TITEL UND LAYOUT EINRICHTEN
 st.set_page_config(page_title="Kanu- & Paddel-Dashboard Deutschland", layout="wide", page_icon="🛶")
 
-st.title("🛶 Bundesweites Kanu- & Paddel-Dashboard")
+st.markdown("""
+
+# 🛶 Deutsches Kanuportal
+
+### Pegel • Befahrbarkeit • Wetter • Sperrungen • Naturschutz
+
+""")
+st.info(
+"Willkommen im bundesweiten Kanuportal. "
+"Hier findest du Live-Pegelstände, Befahrungsregelungen, Sperrungen und Umweltinformationen."
+)
 st.subheader("Echtzeit-Pegel, Befahrungsregelungen, Sperrungen und Umweltwarnungen")
 
 # Mapping für Bundesland-Kürzel
@@ -160,12 +170,39 @@ def get_hochwasser_status():
         return {}
 
 df_pegel = load_live_pegel()
+anzahl_pegel = len(df_pegel)
+
+anzahl_sperrungen = len(df_aktiv) if 'df_aktiv' in locals() else 0
+
+anzahl_warnungen = len(df_archiv) if 'df_archiv' in locals() else 0
+
+heute = datetime.now().strftime("%d.%m.%Y")
 hw_data = get_hochwasser_status()
+c1,c2,c3,c4=st.columns(4)
+
+with c1:
+    st.metric("🌊 Pegelstationen",anzahl_pegel)
+
+with c2:
+    st.metric("⚠️ Sperrungen",anzahl_sperrungen)
+
+with c3:
+    st.metric("📂 Archiv",anzahl_warnungen)
+
+with c4:
+    st.metric("📅 Heute",heute)
 
 # ==========================================
 # DASHBOARD SIDEBAR (FILTER)
 # ==========================================
-st.sidebar.header("🗺️ Filter-Optionen")
+st.sidebar.image(
+"https://upload.wikimedia.org/wikipedia/commons/3/36/Canoe_icon.png",
+width=90
+)
+
+st.sidebar.title("Navigation")
+
+st.sidebar.markdown("---")
 bundeslaender = ["Alle Bundesländer"] + list(BL_MAP.keys())
 selected_bl = st.sidebar.selectbox("Wähle ein Bundesland:", bundeslaender)
 
@@ -219,6 +256,10 @@ df_archiv = df_archiv[df_archiv["Typ"].isin(info_typ)]
 # ==========================================
 # HAUPTBEREICH: ANZEIGE
 # ==========================================
+suche = st.text_input(
+    "🔍 Gewässer suchen",
+    placeholder="z.B. Isar"
+)
 col1, col2 = st.columns([1, 1])
 
 with col1:
@@ -290,3 +331,8 @@ st.caption("""
 * **Deutscher Kanu-Verband e.V. (DKV):** Direktverlinkung zur DKV-Gewässerdatenbank für amtliche und vereinsinterne Befahrungsregelungen.
 * **Community- & Vereinsdatenbank:** Manuell gepflegte Befahrungsregelungen, temporäre Naturschutz-Sperrungen (z.B. Vogelschutz) und lokale Umweltamt-Warnungen (z.B. Blaualgen).
 """)
+st.markdown("---")
+
+st.caption(
+"🛶 Kanuportal Deutschland | Version 2.0 | Daten: WSV, Hochwasserzentralen, DKV und Landesbehörden"
+)
