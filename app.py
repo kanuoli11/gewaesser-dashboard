@@ -5,6 +5,9 @@ from datetime import datetime, date
 import urllib.parse
 from modules.pegel import load_pegel
 from modules.sperrungen import split_sperrungen, filter_sperrungen
+from modules.maps import create_base_map, add_dummy_points
+from streamlit_folium import st_folium
+import folium
 
 # =========================
 # PAGE CONFIG
@@ -162,6 +165,14 @@ with col2:
         pview = pview[pview["Gewässer"].str.contains(search, case=False, na=False)]
 
     st.dataframe(pview, use_container_width=True)
+
+st.markdown("---")
+st.markdown("## 🗺 Deutschlandkarte (Beta)")
+
+m = create_base_map()
+m = add_dummy_points(m)
+
+map_data = st_folium(m, width=1100, height=500)
 # =========================
 # FOOTER
 # =========================
