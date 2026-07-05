@@ -127,7 +127,7 @@ with c4:
 # =========================
 # MAIN AREA
 # =========================
-search = st.text_input("🔍 Suche nach Gewässer")
+search = st.text_input("🔍 Gewässer oder Station suchen")
 
 col1, col2 = st.columns(2)
 
