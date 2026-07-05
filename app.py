@@ -299,4 +299,46 @@ with col1:
                     st.link_button("🌐 Zum alten Info-Link", row["Link"])
                     
                 alt_datum = datetime.strptime(row["Gültig_bis"], "%Y-%m-%d").strftime("%d.%m.%Y")
-                st.caption(f"Gültigkeit lief ab am: {alt_datum
+                st.caption(f"Gültigkeit lief ab am: {alt_datum}")
+
+with col2:
+    st.markdown("### 🌊 Bundesweite Live-Pegelstände")
+    search_river = st.text_input("🔍 Pegel nach Flussnamen filtern (z.B. Donau, Rhein, Isar):", "")
+    
+    df_pegel_filtered = df_pegel.copy()
+    if search_river:
+        df_pegel_filtered = df_pegel_filtered[df_pegel_filtered["Gewässer"].str.contains(search_river, case=False, na=False)]
+    
+    if df_pegel_filtered.empty:
+        st.info("Keine Pegelstationen für diesen Suchbegriff gefunden.")
+    else:
+        st.dataframe(df_pegel_filtered.sort_values(by="Gewässer"), use_container_width=True, hide_index=True)
+
+# ==========================================
+# INTELLIGENTER DKV-EXTERN-LINK
+# ==========================================
+st.markdown("---")
+st.markdown("### 📑 DKV-Befahrungsregelungen (Ergänzende Suche)")
+if selected_bl != "Alle Bundesländer":
+    encoded_bl = urllib.parse.quote(selected_bl)
+    dkv_link = f"https://waters.kanu-efb.de/waters/ShowRestrictions.php?land={encoded_bl}"
+    st.info(f"🔗 **Direkt-Link für {selected_bl}:** [Hier klicken für alle DKV-Regelungen in {selected_bl}]({dkv_link})")
+else:
+    st.info("🔗 **Gesamt-Datenbank:** [Hier geht es direkt zur vollständigen DKV-Befahrungsdatenbank (kanu-efb.de)](https://waters.kanu-efb.de/waters/ShowRestrictions.php)")
+
+# ==========================================
+# QUELLEN-BOX GANZ UNTEN
+# ==========================================
+st.markdown("---")
+st.markdown("#### ℹ️ Genutzte Quellen")
+st.caption("""
+* **PEGELONLINE API:** Wasserstraßen- und Schifffahrtsverwaltung des Bundes (WSV) – Automatische Echtzeit-Pegelstände der Bundeswasserstraßen.
+* **LHP API (Hochwasserzentralen.de):** Länderübergreifendes Hochwasserportal – Automatische, offizielle Hochwasser-Warnmeldungen und Lageberichte der einzelnen Bundesländer.
+* **Deutscher Kanu-Verband e.V. (DKV):** Direktverlinkung zur DKV-Gewässerdatenbank für amtliche und vereinsinterne Befahrungsregelungen.
+* **Community- & Vereinsdatenbank:** Manuell gepflegte Befahrungsregelungen, temporäre Naturschutz-Sperrungen (z.B. Vogelschutz) und lokale Umweltamt-Warnungen (z.B. Blaualgen).
+""")
+st.markdown("---")
+
+st.caption(
+"🛶 Kanuportal Deutschland | Version 2.0 | Daten: WSV, Hochwasserzentralen, DKV und Landesbehörden"
+)
