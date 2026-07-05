@@ -4,6 +4,7 @@ import pandas as pd
 from datetime import datetime, date
 import urllib.parse
 from modules.pegel import load_pegel
+from modules.sperrungen import split_sperrungen, filter_sperrungen
 
 # =========================
 # PAGE CONFIG
@@ -102,27 +103,10 @@ with st.sidebar:
 # =========================
 # FILTER SPERRUNGEN
 # =========================
-today = date.today()
+aktive_list, archiv_list = split_sperrungen(SPERRUNGEN)
 
-aktive = []
-archiv = []
-
-for s in SPERRUNGEN:
-    if datetime.strptime(s["Gültig_bis"], "%Y-%m-%d").date() >= today:
-        aktive.append(s)
-    else:
-        archiv.append(s)
-
-df_a = pd.DataFrame(aktive)
-df_b = pd.DataFrame(archiv)
-
-if bl != "Alle":
-    df_a = df_a[df_a["Bundesland"] == bl]
-    df_b = df_b[df_b["Bundesland"] == bl]
-
-df_a = df_a[df_a["Typ"].isin(typ_filter)]
-df_b = df_b[df_b["Typ"].isin(typ_filter)]
-
+df_a = filter_sperrungen(aktive_list, bl, typ_filter)
+df_b = filter_sperrungen(archiv_list, bl, typ_filter)
 # =========================
 # KPI BOXES
 # =========================
