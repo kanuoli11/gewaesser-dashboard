@@ -131,13 +131,16 @@ search = st.text_input("🔍 Gewässer oder Station suchen")
 
 col1, col2 = st.columns(2)
 
-# -------- Sperrungen --------
+# =========================
+# LINKS: SPERRUNGEN
+# =========================
 with col1:
-    st.markdown("## ⚠️ Sperrungen")
+    st.markdown("## ⚠️ Sperrungen & Hinweise")
 
     view = df_a.copy()
+
     if search:
-        view = view[view["Gewässer"].str.contains(search, case=False)]
+        view = view[view["Gewässer"].str.contains(search, case=False, na=False)]
 
     if view.empty:
         st.success("Keine aktiven Meldungen")
@@ -147,16 +150,18 @@ with col1:
                 st.write("Typ:", r["Typ"])
                 st.write(r["Status"])
 
-# -------- Pegel --------
+# =========================
+# RECHTS: PEGEL
+# =========================
 with col2:
     st.markdown("## 🌊 Pegelstände")
 
     pview = df_pegel.copy()
+
     if search:
         pview = pview[pview["Gewässer"].str.contains(search, case=False, na=False)]
 
     st.dataframe(pview, use_container_width=True)
-
 # =========================
 # FOOTER
 # =========================
