@@ -169,37 +169,7 @@ def get_hochwasser_status():
 
 df_pegel = load_live_pegel()
 anzahl_pegel = len(df_pegel)
-
-# Vorab-Verarbeitung für die Kennzahlen-Metriken
-heute_date = date.today()
-aktive_meldungen_init = []
-archiv_meldungen_init = []
-
-for meldung in SPERRUNGEN_DATENBANK:
-    ablauf_datum = datetime.strptime(meldung["Gültig_bis"], "%Y-%m-%d").date()
-    if ablauf_datum >= heute_date:
-        aktive_meldungen_init.append(meldung)
-    else:
-        archiv_meldungen_init.append(meldung)
-
-anzahl_sperrungen = len(aktive_meldungen_init)
-anzahl_warnungen = len(archiv_meldungen_init)
-
-heute_str = datetime.now().strftime("%d.%m.%Y")
 hw_data = get_hochwasser_status()
-c1,c2,c3,c4=st.columns(4)
-
-with c1:
-    st.metric("🌊 Pegelstationen", anzahl_pegel)
-
-with c2:
-    st.metric("⚠️ Sperrungen", anzahl_sperrungen)
-
-with c3:
-    st.metric("📂 Archiv", anzahl_warnungen)
-
-with c4:
-    st.metric("📅 Heute", heute_str)
 
 # ==========================================
 # DASHBOARD SIDEBAR (FILTER)
@@ -222,6 +192,53 @@ info_typ = st.sidebar.multiselect(
 )
 
 # ==========================================
+# DATEN FILTRIERUNG & METRIK-BERECHNUNG (Dynamisch nach Sidebar-Auswahl)
+# ==========================================
+heute_date = date.today()
+aktive_meldungen_init = []
+archiv_meldungen_init = []
+
+for meldung in SPERRUNGEN_DATENBANK:
+    ablauf_datum = datetime.strptime(meldung["Gültig_bis"], "%Y-%m-%d").date()
+    if ablauf_datum >= heute_date:
+        aktive_meldungen_init.append(meldung)
+    else:
+        archiv_meldungen_init.append(meldung)
+
+df_aktiv = pd.DataFrame(aktive_meldungen_init) if aktive_meldungen_init else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
+df_archiv = pd.DataFrame(archiv_meldungen_init) if archiv_meldungen_init else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
+
+# Filter anwenden
+if selected_bl != "Alle Bundesländer":
+    df_aktiv = df_aktiv[df_aktiv["Bundesland"] == selected_bl]
+    df_archiv = df_archiv[df_archiv["Bundesland"] == selected_bl]
+    
+df_aktiv = df_aktiv[df_aktiv["Typ"].isin(info_typ)]
+df_archiv = df_archiv[df_archiv["Typ"].isin(info_typ)]
+
+# Dynamische Anzahl für die Anzeige-Boxen ermitteln
+anzahl_sperrungen = len(df_aktiv)
+anzahl_warnungen = len(df_archiv)
+heute_str = datetime.now().strftime("%d.%m.%Y")
+
+# ==========================================
+# KENNZAHLEN-BOXEN ANZEIGEN
+# ==========================================
+c1,c2,c3,c4=st.columns(4)
+
+with c1:
+    st.metric("🌊 Pegelstationen", anzahl_pegel)
+
+with c2:
+    st.metric("⚠️ Sperrungen", anzahl_sperrungen)
+
+with c3:
+    st.metric("📂 Archiv", anzahl_warnungen)
+
+with c4:
+    st.metric("📅 Heute", heute_str)
+
+# ==========================================
 # HOCHWASSER-STATUS LIVE ANZEIGEN
 # ==========================================
 if selected_bl != "Alle Bundesländer" and hw_data:
@@ -237,19 +254,6 @@ if selected_bl != "Alle Bundesländer" and hw_data:
         else:
             st.success(f"✅ **Meldung:** {hw_text} (Status: {hw_stufen})")
     st.markdown("---")
-
-# ==========================================
-# DATEN FILTERN FÜR DIE ANZEIGE
-# ==========================================
-df_aktiv = pd.DataFrame(aktive_meldungen_init) if aktive_meldungen_init else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
-df_archiv = pd.DataFrame(archiv_meldungen_init) if archiv_meldungen_init else pd.DataFrame(columns=["Gewässer", "Abschnitt", "Bundesland", "Typ", "Status", "Gültig_bis", "Link"])
-
-if selected_bl != "Alle Bundesländer":
-    df_aktiv = df_aktiv[df_aktiv["Bundesland"] == selected_bl]
-    df_archiv = df_archiv[df_archiv["Bundesland"] == selected_bl]
-    
-df_aktiv = df_aktiv[df_aktiv["Typ"].isin(info_typ)]
-df_archiv = df_archiv[df_archiv["Typ"].isin(info_typ)]
 
 # ==========================================
 # HAUPTBEREICH: ANZEIGE
