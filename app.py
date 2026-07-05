@@ -63,7 +63,7 @@ st.info(
 "Willkommen im bundesweiten Kanuportal. "
 "Hier findest du Live-Pegelstände, Befahrungsregelungen, Sperrungen und Umweltinformationen."
 )
-st.subheader("Echtzeit-Pegel, Befahrungsregelungen, Sperrungen und Umweltwarnungen")
+
 
 # Mapping für Bundesland-Kürzel
 BL_MAP = {
