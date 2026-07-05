@@ -158,7 +158,7 @@ with col1:
     # ARCHIV-BEREICH WEITER UNTEN IN SPALTE 1
     st.markdown("---")
     st.markdown("### 📂 Archiv: Kürzlich abgelaufene Infos")
-    with st.get_container():
+    with st.container():
         if df_archiv.empty:
             st.caption("Keine abgelaufenen Meldungen im Archiv für diese Auswahl.")
         else:
