@@ -172,27 +172,28 @@ anzahl_pegel = len(df_pegel)
 hw_data = get_hochwasser_status()
 
 # ==========================================
-# DASHBOARD SIDEBAR (FILTER)
+# DASHBOARD SIDEBAR (SAUBERE NAVIGATION)
 # ==========================================
-st.sidebar.image(
-"https://upload.wikimedia.org/wikipedia/commons/3/36/Canoe_icon.png",
-width=90
-)
+with st.sidebar:
+    st.image(
+        "https://upload.wikimedia.org/wikipedia/commons/3/36/Canoe_icon.png",
+        width=90
+    )
+    st.markdown("### 🗺️ Filter & Navigation")
+    st.markdown("---")
+    
+    bundeslaender = ["Alle Bundesländer"] + list(BL_MAP.keys())
+    selected_bl = st.selectbox("Wähle ein Bundesland:", bundeslaender, key="bl_select")
 
-st.sidebar.title("Navigation")
-
-st.sidebar.markdown("---")
-bundeslaender = ["Alle Bundesländer"] + list(BL_MAP.keys())
-selected_bl = st.sidebar.selectbox("Wähle ein Bundesland:", bundeslaender)
-
-info_typ = st.sidebar.multiselect(
-    "Informationstyp:", 
-    ["Sperrung", "Regulierung", "Umweltschutz", "Pegelabhängig", "Umweltwarnung"],
-    default=["Sperrung", "Regulierung", "Umweltschutz", "Pegelabhängig", "Umweltwarnung"]
-)
+    info_typ = st.multiselect(
+        "Informationstyp:", 
+        ["Sperrung", "Regulierung", "Umweltschutz", "Pegelabhängig", "Umweltwarnung"],
+        default=["Sperrung", "Regulierung", "Umweltschutz", "Pegelabhängig", "Umweltwarnung"],
+        key="info_select"
+    )
 
 # ==========================================
-# DATEN FILTRIERUNG & METRIK-BERECHNUNG (Dynamisch nach Sidebar-Auswahl)
+# DATEN FILTRIERUNG & METRIK-BERECHNUNG
 # ==========================================
 heute_date = date.today()
 aktive_meldungen_init = []
