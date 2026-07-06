@@ -1,1 +1,26 @@
-initial data file
+[
+  {
+    "id": 1,
+    "gewaesser": "Isar",
+    "abschnitt": "Freising bis Landshut",
+    "bundesland": "Bayern",
+    "typ": "Umweltschutz",
+    "status": "Vogelschutz-Zeitregelung aktiv",
+    "gueltig_bis": "2026-07-31",
+    "link": "",
+    "latitude": 48.40,
+    "longitude": 11.75
+  },
+  {
+    "id": 2,
+    "gewaesser": "Rur",
+    "abschnitt": "Eifel",
+    "bundesland": "Nordrhein-Westfalen",
+    "typ": "Pegelabhängig",
+    "status": "Befahrbar nur bei grünem Pegel",
+    "gueltig_bis": "2027-12-31",
+    "link": "",
+    "latitude": 50.55,
+    "longitude": 6.43
+  }
+]
